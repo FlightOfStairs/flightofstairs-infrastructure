@@ -2,3 +2,4 @@
 build
 coverage
 cdk.out
+package-lock.json
