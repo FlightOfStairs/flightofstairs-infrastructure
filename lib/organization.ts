@@ -18,18 +18,32 @@ export class Organization extends Construct {
       featureSet: "ALL",
     });
 
-    const whenToFlyAccount = new CfnAccount(this, "WhenToFly", {
-      accountName: "When to Fly",
-      email: "aws+when-to-fly@example.com",
-      roleName: "OrganizationAccountAccessRole",
-      parentIds: [org.attrRootId],
-    });
+    const applicationAccounts = [
+      {
+        id: "WhenToFly",
+        accountName: "When to Fly",
+        email: "aws+when-to-fly@example.com",
+      },
+      {
+        id: "PlaneFacts",
+        accountName: "Plane Facts",
+        email: "aws+plane-facts@flightofstairs.org",
+      },
+    ].map(
+      ({ id, accountName, email }) =>
+        new CfnAccount(this, id, {
+          accountName,
+          email,
+          roleName: "OrganizationAccountAccessRole",
+          parentIds: [org.attrRootId],
+        }),
+    );
 
     const ssoDiscovery = new SsoDiscovery(this, "SsoDiscovery");
 
     const targetAccountIds = [
       Aws.ACCOUNT_ID, // management account
-      whenToFlyAccount.attrAccountId,
+      ...applicationAccounts.map((account) => account.attrAccountId),
     ];
 
     const adminPermissions = new CfnPermissionSet(this, "AdminPermissionSet", {
